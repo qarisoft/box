@@ -36,3 +36,26 @@ class BoxPriorBounds():
         assert all(res[k][0].shape[0] == 0 if (k not in self.idc) else True for k in range(K))
 
         return res
+
+
+class BoxBounds():
+    def __init__(self, **kwargs):
+        self.margins: Tensor = torch.Tensor(kwargs['margins'])
+        assert len(self.margins) == 2
+        assert self.margins[0] <= self.margins[1]
+
+    def __call__(self, image: Tensor, target: Tensor, weak_target: Tensor, filename: str) -> Tensor:
+        c = len(weak_target)
+        box_sizes: Tensor = torch.einsum("cwh->c", weak_target)[..., None].type(torch.float32)
+
+        bounds: Tensor = box_sizes * self.margins
+
+        res = bounds[:, None, :]
+        assert res.shape == (c, 1, 2)
+        assert (res[..., 0] <= res[..., 1]).all()
+
+        # exact_sizes: Tensor = torch.einsum("cwh->c", target).type(torch.float32)
+        # assert (res[3, 0, 0] <= exact_sizes[3]).all(), (res[:, 0, 0], exact_sizes, box_sizes[..., 0])
+        # assert (res[3, 0, 1] >= exact_sizes[3]).all(), (res[:, 0, 1], exact_sizes, box_sizes[..., 0])
+
+        return res
