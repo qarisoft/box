@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 from operator import add
 from collections import namedtuple
-from multiprocessing.pool import Pool
+# from multiprocessing.pool import Pool
 from random import random, uniform, randint
 from functools import lru_cache, partial, reduce
 
@@ -50,7 +50,7 @@ def map_(fn: Callable[[A], B], iter: Iterable[A]) -> List[B]:
 
 
 def mmap_(fn: Callable[[A], B], iter: Iterable[A]) -> List[B]:
-    return Pool().map(fn, iter)
+    return map(fn, iter)
 
 
 def uc_(fn: Callable) -> Callable:

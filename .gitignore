@@ -1,7 +1,8 @@
 results/
 inference/
 archives/
-
+.idea/
+2.m
 data/*
 !data/*.lineage
 

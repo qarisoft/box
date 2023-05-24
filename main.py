@@ -8,7 +8,7 @@ from operator import add, itemgetter
 from shutil import copytree, rmtree
 from typing import Any, Callable, Dict, List, Tuple, Optional, Union, cast
 
-import torch
+import os, torch
 import numpy as np
 import pandas as pd
 import torch.nn.functional as F
@@ -209,27 +209,27 @@ def do_epoch(mode: str, net: Any, device: Any, loaders: List[DataLoader], epc: i
                 intersections[sm_slice] = inter_sum(mask_receptacle, target)  # type: ignore
                 unions[sm_slice] = union_sum(mask_receptacle, target)  # type: ignore
 
-            # if False and target[0, 1].sum() > 0:  # Useful template for quick and dirty inspection
-            #     import matplotlib.pyplot as plt
-            #     from pprint import pprint
-            #     from mpl_toolkits.axes_grid1 import ImageGrid
-            #     from utils import soft_length
+            if False and target[0, 1].sum() > 0:  # Useful template for quick and dirty inspection
+                import matplotlib.pyplot as plt
+                from pprint import pprint
+                from mpl_toolkits.axes_grid1 import ImageGrid
+                from utils import soft_length
 
-            #     print(data["filenames"])
-            #     pprint(data["bounds"])
-            #     pprint(soft_length(mask_receptacle))
+                print(data["filenames"])
+                pprint(data["bounds"])
+                pprint(soft_length(mask_receptacle))
 
-            #     fig = plt.figure()
-            #     fig.clear()
+                fig = plt.figure()
+                fig.clear()
 
-            #     grid = ImageGrid(fig, 211, nrows_ncols=(1, 2))
+                grid = ImageGrid(fig, 211, nrows_ncols=(1, 2))
 
-            #     grid[0].imshow(data["images"][0, 0], cmap="gray")
-            #     grid[0].contour(data["gt"][0, 1], cmap='jet', alpha=.75, linewidths=2)
+                grid[0].imshow(data["images"][0, 0], cmap="gray")
+                grid[0].contour(data["gt"][0, 1], cmap='jet', alpha=.75, linewidths=2)
 
-            #     grid[1].imshow(data["images"][0, 0], cmap="gray")
-            #     grid[1].contour(mask_receptacle[0, 1], cmap='jet', alpha=.75, linewidths=2)
-            #     plt.show()
+                grid[1].imshow(data["images"][0, 0], cmap="gray")
+                grid[1].contour(mask_receptacle[0, 1], cmap='jet', alpha=.75, linewidths=2)
+                plt.show()
 
             # Save images
             if savedir:
@@ -297,6 +297,7 @@ def do_epoch(mode: str, net: Any, device: Any, loaders: List[DataLoader], epc: i
 
 
 def run(args: argparse.Namespace) -> Dict[str, Tensor]:
+    global best_3d_dsc, best_hausdorff
     n_class: int = args.n_class
     lr: float = args.l_rate
     savedir: str = args.workdir
@@ -332,6 +333,7 @@ def run(args: argparse.Namespace) -> Dict[str, Tensor]:
         metrics["tra_mIoUs"] = cast(Tensor, torch.zeros((n_epoch, n_class)).type(torch.float32))
 
     if args.compute_3d_dice:
+        print(args.compute_3d_dice)
         metrics["val_3d_dsc"] = cast(Tensor, torch.zeros((n_epoch, l_val, n_class)).type(torch.float32))
 
     print("\n>>> Starting the training")
@@ -471,6 +473,7 @@ def get_args() -> argparse.Namespace:
     if args.metric_axis == []:
         args.metric_axis = list(range(args.n_class))
     print("\n", args)
+    # args.use_spacing = False
 
     return args
 

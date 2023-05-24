@@ -1,7 +1,7 @@
 #!/usr/env/bin python3.6
 
 import io
-import re
+import re,os
 import pickle
 from pathlib import Path
 from ast import literal_eval
@@ -9,7 +9,7 @@ from itertools import repeat
 from random import random, shuffle
 from operator import itemgetter, mul
 from functools import partial, reduce
-from multiprocessing import cpu_count
+# from multiprocessing import cpu_count
 from typing import Callable, BinaryIO, Dict, List, Match, Pattern, Tuple, Union, Optional
 
 import torch
@@ -18,7 +18,8 @@ from PIL import Image
 from torch import Tensor
 from torchvision import transforms
 from skimage.transform import resize
-from torch._six import container_abcs
+# from torch._six import container_abcs
+import collections.abc as container_abcs
 from torch.utils.data import Dataset, DataLoader, Sampler
 
 from utils import map_, class2one_hot, one_hot2dist, id_
@@ -166,14 +167,14 @@ def get_loaders(args, data_folder: str,
                               are_hots=are_hots,
                               debug=debug,
                               K=n_class,
-                              in_memory=in_memory,
+                              in_memory=False,
                               bounds_generators=bounds_generators,
                               box_prior=args.box_prior,
                               box_priors_arg=args.box_prior_args,
                               dimensions=dimensions)
         data_loader = partial(DataLoader,
-                              num_workers=min(cpu_count(), batch_size + 5),
-                              pin_memory=True,
+                            #   num_workers=min(cpu_count(), batch_size + 5),
+                              pin_memory=False,
                               collate_fn=custom_collate)
 
         train_folders: List[Path] = [Path(data_folder, train_topfolder, f) for f in folders]

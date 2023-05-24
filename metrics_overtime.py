@@ -4,7 +4,7 @@ import re
 import argparse
 from pathlib import Path
 from functools import partial
-from multiprocessing import cpu_count
+# from multiprocessing import cpu_count
 from typing import Dict, List, Match, Pattern
 
 import torch
@@ -88,7 +88,7 @@ def main() -> None:
                           box_priors_arg='{}',
                           dimensions=2)
     data_loader = partial(DataLoader,
-                          num_workers=cpu_count(),
+                        #   num_workers=cpu_count(),
                           pin_memory=False,
                           collate_fn=custom_collate)
 
