@@ -91,6 +91,12 @@ def sanity_label(label, t1, resolution, t1_resolution, label_path) -> bool:
     assert resolution == t1_resolution
 
     assert label.dtype in [np.float64], label.dtype
+
+    # print(str(label_path))
+    # if "31898" in str(label_path):
+    #     print(label_path, uniq(label))
+
+    # > 0 means disease
     labels_allowed = [[0.0, 0.9999999997671694],
                       [0., 254.9999999406282],
                       [0., 0.9999999997671694, 253.99999994086102, 254.9999999406282],
@@ -119,36 +125,28 @@ def slice_patient(id_: str, dest_path: Path, source_path: Path, shape: Tuple[int
         else:
             t1_path: Path = Path(acq, f"anat/{id_}_ses-1_space-MNI152NLin2009aSym_T1w.nii.gz")
         nib_obj = nib.load(str(t1_path))
-        t1: np.ndarray = np.asarray(nib_obj.dataobj,dtype=np.float32)
-        if t1.max()>100:
-            cc0 = t1.max()/100
-            t1 = t1//cc0
-        print("t1 shape ",t1.shape)
+        t1: np.ndarray = np.asarray(nib_obj.dataobj)
         x, y, z = t1.shape
-        if x!=480:
-            continue
-        if y!=480:
-            continue
-        # args.shape=(x,y)
-        # assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
+        cc0 = t1.max()/100
+        t1 = t1//cc0
+        print("t1 shape ",t1.shape)
+        
         try:
             assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
         except:
             print("SSSSSSSSSSSSSSSS")
-            # continue
+            continue
         # gt: np.ndarray = fuse_labels(t1, id_, acq, nib_obj)
         gt, gt1 = fuse_labels(t1, id_, acq, nib_obj,cycl=cycl)
 
         norm_img: np.ndarray = norm_arr(t1)
 
         for idz in range(z):
-            try:
-                padded_img: np.ndarray = center_pad(norm_img[:, :, idz], shape)
-                padded_gt: np.ndarray = center_pad(gt[:, :, idz], shape)
-                padded_gt1: np.ndarray = center_pad(gt1[:, :, idz], shape)
-                assert padded_img.shape == padded_gt.shape == shape
-            except:
-                continue
+            padded_img: np.ndarray = center_pad(norm_img[:, :, idz], shape)
+            padded_gt: np.ndarray = center_pad(gt[:, :, idz], shape)
+            padded_gt1: np.ndarray = center_pad(gt1[:, :, idz], shape)
+            assert padded_img.shape == padded_gt.shape == shape
+
             for k in range(n_augment + 1):
                 arrays: List[np.ndarray] = [padded_img, padded_gt, padded_gt1]
 
@@ -244,7 +242,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('--retains', type=int, default=2, help="Number of retained patient for the validation data")
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--fold', type=int, default=0)
-    parser.add_argument("--cycl",type=bool,default=False)
+    parser.add_argument("--cycl",type=bool,default=True)
     
     parser.add_argument('--n_augment', type=int, default=0,
                         help="Number of augmentation to create per image, only for the training set")
@@ -257,6 +255,4 @@ def get_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-    # global args
-    args = get_args()
-    main(args)
+    main(get_args())

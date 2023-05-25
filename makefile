@@ -5,7 +5,7 @@ PP = PYTHONPATH="$(PYTHONPATH):."
 
 # CFLAGS = -O
 # DEBUG = --debug
-EPC = 12
+EPC = 1
 # EPC = 5
 BS = 1
 
@@ -94,11 +94,12 @@ data/atlas: data
 
 data/ATLAS/train/gt data/ATLAS/val/gt: | data/ATLAS
 data/ATLAS/train data/ATLAS/val: | data/ATLAS
-data/ATLAS: data/gz
+# data/ATLAS: data/gz
+data/ATLAS: data/cy
 # rm -r data\ATLAS_tmp
-	$(CC)   slice_atlas.py --source_dir $^ --dest_dir $@ --id_list data/uniq_ids \
-		--n_augment 0 --shape 208 256
-# mv data\ATLAS_tmp data\ATLAS
+	$(CC)   slice_atlas.py --source_dir $^ --dest_dir $@ --id_list data/uniq_ids_cycl \
+		--n_augment 0 --cycl true --shape 480 480 
+# mv data\ATLAS_tmp data\ATLAS   208 256 
 
 
 # Weak labels generation

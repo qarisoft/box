@@ -392,7 +392,8 @@ def custom_collate(batch):
             # shared memory tensor to avoid an extra copy
             numel = sum([x.numel() for x in batch])
             storage = elem.storage()._new_shared(numel)
-            out = elem.new(storage)
+            # out = elem.new(storage)
+            out = elem.new(storage).view(-1, *list(elem.size()))  
         return torch.stack(batch, 0, out=out)
     elif isinstance(elem, str) or isinstance(elem, slice):
         return batch

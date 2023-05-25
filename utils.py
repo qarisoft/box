@@ -3,8 +3,9 @@
 import argparse
 from pathlib import Path
 from operator import add
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from collections import namedtuple
-# from multiprocessing.pool import Pool
+from multiprocessing import Pool
 from random import random, uniform, randint
 from functools import lru_cache, partial, reduce
 
@@ -49,9 +50,18 @@ def map_(fn: Callable[[A], B], iter: Iterable[A]) -> List[B]:
     return list(map(fn, iter))
 
 
-def mmap_(fn: Callable[[A], B], iter: Iterable[A]) -> List[B]:
-    return map(fn, iter)
-
+def mmap_(fn: Callable[[A], B], iter: Iterable[A],r=None) -> List[B]:
+    with ProcessPoolExecutor() as executor:
+        if r:
+            return map(fn, iter)
+        else:
+            futures = [executor.submit(fn, it_) for it_ in iter]
+            # for future in as_completed(futures):
+                # if future.done():
+                    # print("result:-> done")
+            # for it_ in iter:
+                # executor.submit(fn, it_)
+            
 
 def uc_(fn: Callable) -> Callable:
     return partial(uncurry, fn)
@@ -305,7 +315,7 @@ def binary2boxcoords(seg: Tensor) -> List[BoxCoords]:
     for b in range(1, n_blob + 1):
         blob_mask: np.ndarray = blobs == b
 
-        assert blob_mask.dtype == np.bool, blob_mask.dtype
+        assert blob_mask.dtype == np.bool_, blob_mask.dtype
         # assert set(np.unique(blob_mask)) == set([0, 1])
 
         coords = np.argwhere(blob_mask)
@@ -493,9 +503,21 @@ def center_pad(arr: np.ndarray, target_shape: Tuple[int, ...]) -> np.ndarray:
     assert len(arr.shape) == len(target_shape)
 
     diff: List[int] = [(nx - x) for (x, nx) in zip(arr.shape, target_shape)]
-    pad_width: List[Tuple[int, int]] = [(w // 2, w - (w // 2)) for w in diff]
-
+    pad_width: List[Tuple(int, int)] = [[w // 2, w - (w // 2)] for w in diff]
+    # pad_width = []
+    # for i2 in pad_widt:
+    #     p1 = []
+    #     print("p1 ",p1)
+    #     print("i2 ",i2)
+    #     for i,x in enumerate(i2):
+    #         p2 = x
+    #         if x<0:
+    #             p2 = -x
+    #         p1.append(p2)
+    #     pad_widt0 = (p1[0],p1[1])
+    #     pad_width.append(pad_widt0)
     res = np.pad(arr, pad_width)
+    # print("pad_width ",res.shape)
     assert res.shape == target_shape, (res.shape, target_shape)
 
     return res

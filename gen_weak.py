@@ -225,7 +225,7 @@ def main(args: Namespace) -> None:
     # sizes: np.ndarray = np.zeros(len(inputs), dtype=np.uint32)
     # for i, (pn) in tqdm(enumerate(zip(inputs, names)), ncols=100, total=len(names)):
     #     sizes[i] = strat(pn)
-    orig_sizes, new_sizes = map_(np.asarray, zip(*mmap_(strat, zip(inputs, names))))
+    orig_sizes, new_sizes = map_(np.asarray, zip(*mmap_(strat, zip(inputs, names),r=True)))
     assert len(orig_sizes) == len(new_sizes) == len(names)
 
     print("Orig sizes: (min, mean, max)", orig_sizes[orig_sizes > 0].min(), orig_sizes.mean(), orig_sizes.max())
