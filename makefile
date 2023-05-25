@@ -1,4 +1,4 @@
-CC = venv/Scripts/python
+CC = python
 PP = PYTHONPATH="$(PYTHONPATH):."
 
 .PHONY: all plot train pack view metrics report
