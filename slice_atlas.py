@@ -38,7 +38,7 @@ def fuse_labels(t1: np.ndarray, id_: str, acq: Path, nib_obj,cycl:bool=False) ->
         acq_=acq.parent
         labels: List[Path] = list(acq_.glob(f"{id_}_scribble.nii.gz"))
     else:    
-        labels: List[Path] = list(acq.glob(f"anat/{id_}_ses-1_space-MNI152NLin2009aSym_label-L_desc-T1lesion_mask.nii.gz"))
+        labels: List[Path] = list(acq.glob(f"ses-1/anat/{acq.name}_ses-1_space-orig_label-L_desc-T1lesion_mask.nii.gz"))
     # try:
 
     # print(len(labels),"123458")
@@ -73,14 +73,14 @@ def sanity_t1(t1, x, y, z, dx, dy, dz) -> bool:
     assert t1.max() <= 100.0001, t1.max()
 
     assert 1 <= dx <= 1, dx
-    assert 1 <= dy <= 1, dy
+    assert dy <= 1, dy
     assert 1 <= dz <= 1, dz
 
     assert x != y, (x, y)
     assert x != z or y != z, (x, y, z)
-    assert x in [197], x
-    assert y in [233], y
-    assert z in [189], z
+    assert x in [230], x
+    assert y in [225,240], y
+    assert z in [230], z
 
     return True
 
@@ -108,7 +108,7 @@ def slice_patient(id_: str, dest_path: Path, source_path: Path, shape: Tuple[int
     id_path: Path = Path(source_path, id_)
     # print(cycl)
     # print("id_path",id_path, "","id_",id_)
-    for acq in id_path.glob("*"):
+    for acq in id_path.glob("s*"):
         acq_id: str = acq.name
         if cycl:
             if acq.name==f"{id_}.nii.gz" :
@@ -117,7 +117,7 @@ def slice_patient(id_: str, dest_path: Path, source_path: Path, shape: Tuple[int
             else: 
                 continue
         else:
-            t1_path: Path = Path(acq, f"anat/{id_}_ses-1_space-MNI152NLin2009aSym_T1w.nii.gz")
+            t1_path: Path = Path(acq, f"ses-1/anat/{acq.name}_ses-1_T1w.nii.gz")
         nib_obj = nib.load(str(t1_path))
         t1: np.ndarray = np.asarray(nib_obj.dataobj,dtype=np.float32)
         if t1.max()>100:
@@ -125,16 +125,13 @@ def slice_patient(id_: str, dest_path: Path, source_path: Path, shape: Tuple[int
             t1 = t1//cc0
         print("t1 shape ",t1.shape)
         x, y, z = t1.shape
-        if x!=480:
-            continue
-        if y!=480:
-            continue
-        # args.shape=(x,y)
-        # assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
-        try:
-            assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
-        except:
-            print("SSSSSSSSSSSSSSSS")
+
+        print("args", *t1.shape, "zoom",*nib_obj.header.get_zooms())
+        assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
+        # try:
+            # assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
+        # except:
+            # print("SSSSSSSSSSSSSSSS")
             # continue
         # gt: np.ndarray = fuse_labels(t1, id_, acq, nib_obj)
         gt, gt1 = fuse_labels(t1, id_, acq, nib_obj,cycl=cycl)

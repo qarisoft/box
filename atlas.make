@@ -5,9 +5,9 @@ PP = PYTHONPATH="$(PYTHONPATH):."
 
 # CFLAGS = -O
 # DEBUG = --debug
-EPC = 1
+EPC = 5
 # EPC = 5
-BS = 1
+BS = 10
 
 K = 2
 
@@ -95,10 +95,11 @@ data/atlas: data
 data/ATLAS/train/gt data/ATLAS/val/gt: | data/ATLAS
 data/ATLAS/train data/ATLAS/val: | data/ATLAS
 # data/ATLAS: data/gz
-data/ATLAS: data/cy
+data/ATLAS: data/n
 # rm -r data\ATLAS_tmp
-	$(CC)   slice_atlas.py --source_dir $^ --dest_dir $@ --id_list data/uniq_ids_cycl \
-		--n_augment 0 --cycl true --shape 480 480 
+	$(CC)   slice_atlas.py --source_dir $^ --dest_dir $@ --id_list data/uniq_ids \
+		--n_augment 0  --shape 240 230
+# 208 256 
 # mv data\ATLAS_tmp data\ATLAS   208 256 
 
 
