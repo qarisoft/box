@@ -36,7 +36,7 @@ def fuse_labels(t1: np.ndarray, id_: str, acq: Path, nib_obj,cycl:bool=False) ->
     assert gt.dtype == np.uint8
     if cycl:
         acq_=acq.parent
-        labels: List[Path] = list(acq_.glob(f"{id_}_scribble.nii.gz"))
+        labels: List[Path] = list(acq_.glob(f"{id_}_manual.nii.gz"))
     else:    
         labels: List[Path] = list(acq.glob(f"ses-1/anat/{acq.name}_ses-1_space-orig_label-L_desc-T1lesion_mask.nii.gz"))
     # try:

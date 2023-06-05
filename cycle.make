@@ -77,7 +77,7 @@ $(LIGHTPACK): $(PLT) $(TRN)
 data/ATLAS/train/gt data/ATLAS/val/gt: | data/ATLAS
 data/ATLAS/train data/ATLAS/val: | data/ATLAS
 data/ATLAS:  data/cyclemix
-	$(CC)   slice_atlas.py --source_dir $^ --dest_dir $@ --id_list data/uniq_ids \
+	$(CC)   slice_cycl.py --source_dir $^ --dest_dir $@ --id_list data/uniq_ids \
 		--n_augment 0  --shape 240 230
 
 

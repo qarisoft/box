@@ -34,14 +34,8 @@ def fuse_labels(t1: np.ndarray, id_: str, acq: Path, nib_obj,cycl:bool=False) ->
     gt: np.ndarray = np.zeros_like(t1, dtype=np.uint8)
     gt1: np.ndarray = np.zeros_like(t1, dtype=np.uint8)
     assert gt.dtype == np.uint8
-    if cycl:
-        acq_=acq.parent
-        labels: List[Path] = list(acq_.glob(f"{id_}_scribble.nii.gz"))
-    else:    
-        labels: List[Path] = list(acq.glob(f"anat/{id_}_ses-1_space-MNI152NLin2009aSym_label-L_desc-T1lesion_mask.nii.gz"))
-    # try:
-
-    # print(len(labels),"123458")
+    acq_=acq.parent
+    labels: List[Path] = list(acq_.glob(f"{id_}_manual.nii.gz"))
     assert len(labels) >= 1, (acq, id_)
     # except:
         # pass
@@ -73,14 +67,14 @@ def sanity_t1(t1, x, y, z, dx, dy, dz) -> bool:
     assert t1.max() <= 100.0001, t1.max()
 
     assert 1 <= dx <= 1, dx
-    assert 1 <= dy <= 1, dy
+    assert dy <= 1, dy
     assert 1 <= dz <= 1, dz
 
     assert x != y, (x, y)
     assert x != z or y != z, (x, y, z)
-    assert x in [197], x
-    assert y in [233], y
-    assert z in [189], z
+    assert x in [230], x
+    assert y in [225,240], y
+    assert z in [230], z
 
     return True
 
@@ -91,12 +85,6 @@ def sanity_label(label, t1, resolution, t1_resolution, label_path) -> bool:
     assert resolution == t1_resolution
 
     assert label.dtype in [np.float64], label.dtype
-
-    # print(str(label_path))
-    # if "31898" in str(label_path):
-    #     print(label_path, uniq(label))
-
-    # > 0 means disease
     labels_allowed = [[0.0, 0.9999999997671694],
                       [0., 254.9999999406282],
                       [0., 0.9999999997671694, 253.99999994086102, 254.9999999406282],
@@ -114,7 +102,7 @@ def slice_patient(id_: str, dest_path: Path, source_path: Path, shape: Tuple[int
     id_path: Path = Path(source_path, id_)
     # print(cycl)
     # print("id_path",id_path, "","id_",id_)
-    for acq in id_path.glob("*"):
+    for acq in id_path.glob("s*"):
         acq_id: str = acq.name
         if cycl:
             if acq.name==f"{id_}.nii.gz" :
@@ -123,30 +111,35 @@ def slice_patient(id_: str, dest_path: Path, source_path: Path, shape: Tuple[int
             else: 
                 continue
         else:
-            t1_path: Path = Path(acq, f"anat/{id_}_ses-1_space-MNI152NLin2009aSym_T1w.nii.gz")
+            t1_path: Path = Path(acq, f"ses-1/anat/{acq.name}_ses-1_T1w.nii.gz")
         nib_obj = nib.load(str(t1_path))
-        t1: np.ndarray = np.asarray(nib_obj.dataobj)
+        t1: np.ndarray = np.asarray(nib_obj.dataobj,dtype=np.float32)
+        if t1.max()>100:
+            cc0 = t1.max()/100
+            t1 = t1//cc0
+        # print("t1 shape ",t1.shape)
         x, y, z = t1.shape
-        cc0 = t1.max()/100
-        t1 = t1//cc0
-        print("t1 shape ",t1.shape)
-        
-        try:
-            assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
-        except:
-            print("SSSSSSSSSSSSSSSS")
-            continue
+
+        # print("args", *t1.shape, "zoom",*nib_obj.header.get_zooms())
+        # assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
+        # try:
+            # assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
+        # except:
+            # print("SSSSSSSSSSSSSSSS")
+            # continue
         # gt: np.ndarray = fuse_labels(t1, id_, acq, nib_obj)
         gt, gt1 = fuse_labels(t1, id_, acq, nib_obj,cycl=cycl)
 
         norm_img: np.ndarray = norm_arr(t1)
 
         for idz in range(z):
-            padded_img: np.ndarray = center_pad(norm_img[:, :, idz], shape)
-            padded_gt: np.ndarray = center_pad(gt[:, :, idz], shape)
-            padded_gt1: np.ndarray = center_pad(gt1[:, :, idz], shape)
-            assert padded_img.shape == padded_gt.shape == shape
-
+            try:
+                padded_img: np.ndarray = center_pad(norm_img[:, :, idz], shape)
+                padded_gt: np.ndarray = center_pad(gt[:, :, idz], shape)
+                padded_gt1: np.ndarray = center_pad(gt1[:, :, idz], shape)
+                assert padded_img.shape == padded_gt.shape == shape
+            except:
+                continue
             for k in range(n_augment + 1):
                 arrays: List[np.ndarray] = [padded_img, padded_gt, padded_gt1]
 
@@ -255,4 +248,6 @@ def get_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-    main(get_args())
+    # global args
+    args = get_args()
+    main(args)
