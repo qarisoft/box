@@ -46,8 +46,8 @@ DATE = $(shell date +"%y%m%d")
 HASH = $(shell git rev-parse --short HEAD)
 HOSTNAME = $(shell hostname)
 PBASE = archives
-PACK = $(PBASE)/$(DATE)-$(HASH)-$(HOSTNAME)-atlas.tar.gz
-LIGHTPACK = $(PBASE)/$(DATE)-$(HASH)-$(HOSTNAME)-atlas_light.tar.gz
+PACK = $(PBASE)/$(DATE)$(HOSTNAME)-atlas.tar.gz
+LIGHTPACK = $(PBASE)/$(DATE)$(HOSTNAME)-atlas_light.tar.gz
 all: pack
 
 plot: $(PLT)
