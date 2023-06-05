@@ -41,66 +41,44 @@ BOXPLOT = results/atlas/val_dice_boxplot.png \
 
 PLT = $(GRAPH) $(HIST) $(BOXPLOT)
 
-# REPO = $(shell basename `git rev-parse --show-toplevel`)
-# DATE = $(shell date +"%y%m%d")
-# HASH = $(shell git rev-parse --short HEAD)
-# HOSTNAME = $(shell hostname)
+REPO = $(shell basename `git rev-parse --show-toplevel`)
+DATE = $(shell date +"%y%m%d")
+HASH = $(shell git rev-parse --short HEAD)
+HOSTNAME = $(shell hostname)
 PBASE = archives
-#PACK = $(PBASE)/$(REPO)-$(DATE)-$(HASH)-$(HOSTNAME)-atlas.tar.gz
-#LIGHTPACK = $(PBASE)/$(REPO)-$(DATE)-$(HASH)-$(HOSTNAME)-atlas_light.tar.gz
-
-all: train
+PACK = $(PBASE)/$(REPO)-$(DATE)-$(HASH)-$(HOSTNAME)-atlas.tar.gz
+LIGHTPACK = $(PBASE)/$(REPO)-$(DATE)-$(HASH)-$(HOSTNAME)-atlas_light.tar.gz
+all: pack
 
 plot: $(PLT)
 # plot: results/atlas/val_3d_dsc.png
 
 train: $(TRN)
 
-pack: report 
-#
-# $(PACK): $(PLT) $(TRN)
-# 	mkdir -p $(@D)
-# 	tar cf - $^ | pigz > $@
-# 	chmod -w $@
+pack: report $(PACK) $(LIGHTPACK)
+
+$(PACK): $(PLT) $(TRN)
+	mkdir -p $(@D)
+	tar cf - $^ | pigz > $@
+	chmod -w $@
 # tar -zc -f $@ $^  # Use if pigz is not available
-# $(LIGHTPACK): $(PLT) $(TRN)
-# 	mkdir -p $(@D)
-# 	$(eval PLTS:=$(filter %.png, $^))
-# 	$(eval FF:=$(filter-out %.png, $^))
-# 	$(eval TGT:=$(addsuffix /best_epoch, $(FF)) $(addsuffix /*.npy, $(FF)) $(addsuffix /best_epoch.txt, $(FF)) $(addsuffix /metrics.csv, $(FF)))
-# 	tar cf - $(PLTS) $(TGT) | pigz > $@
-# 	chmod -w $@
+$(LIGHTPACK): $(PLT) $(TRN)
+	mkdir -p $(@D)
+	$(eval PLTS:=$(filter %.png, $^))
+	$(eval FF:=$(filter-out %.png, $^))
+	$(eval TGT:=$(addsuffix /best_epoch, $(FF)) $(addsuffix /*.npy, $(FF)) $(addsuffix /best_epoch.txt, $(FF)) $(addsuffix /metrics.csv, $(FF)))
+	tar cf - $(PLTS) $(TGT) | pigz > $@
+	chmod -w $@
 
 
-# Dataset
-data/atlas: data
-#	sha256sum -c $<
-#	rm -rf $@_tmp $@
-#	unzip -q $(word 2, $^) -d $@_tmp
-#	mv $@_tmp/ATLAS_R1.1/* $@_tmp
-#	rmdir $@_tmp/ATLAS_R1.1
-#	ls $@_tmp | grep Site
-#	for f in `ls $@_tmp | grep Site` ; do \
-#		ls -1 $@_tmp/$$f >> $@_tmp/all_ids ; \
-#		mv $@_tmp/$$f/* $@_tmp ; \
-#	done
-#	rmdir $@_tmp/Site*
-#	echo `wc -l $@_tmp/all_ids` patients total
-#	sort $@_tmp/all_ids > $@_tmp/sorted_ids
-#	uniq $@_tmp/sorted_ids > $@_tmp/uniq_ids
-#	echo `wc -l $@_tmp/uniq_ids` unique patients
-#	mv $@_tmp $@
+
 
 
 data/ATLAS/train/gt data/ATLAS/val/gt: | data/ATLAS
 data/ATLAS/train data/ATLAS/val: | data/ATLAS
-# data/ATLAS: data/gz
-data/ATLAS: data/n
-# rm -r data\ATLAS_tmp
+data/ATLAS:  data/cyclemix
 	$(CC)   slice_atlas.py --source_dir $^ --dest_dir $@ --id_list data/uniq_ids \
 		--n_augment 0  --shape 240 230
-# 208 256 
-# mv data\ATLAS_tmp data\ATLAS   208 256 
 
 
 # Weak labels generation
