@@ -51,12 +51,12 @@ BOXPLOT = results/prostate/val_3d_dsc_boxplot.png results/prostate/val_dice_boxp
 PLT = $(GRAPH) $(HIST) $(BOXPLOT)
 
 
-REPO = $(shell basename `git rev-parse --show-toplevel`)
+# REPO = $(shell basename `git rev-parse --show-toplevel`)
 DATE = $(shell date +"%y%m%d")
-HASH = $(shell git rev-parse --short HEAD)
-HOSTNAME = $(shell hostname)
+# HASH = $(shell git rev-parse --short HEAD)
+# HOSTNAME = $(shell hostname)
 PBASE = archives
-PACK = $(PBASE)/$(REPO)-$(DATE)-$(HASH)-$(HOSTNAME)-prostate.tar.gz
+PACK = $(PBASE)/$(DATE)-prostate.tar.gz
 
 all: pack
 
@@ -76,7 +76,7 @@ $(PACK): $(PLT) $(TRN)
 data/PROSTATE/train/gt data/PROSTATE/val/gt: data/PROSTATE
 data/PROSTATE: data/promise
 	rm -rf $@_tmp
-	$(PP) $(CC) $(CFLAGS) preprocess/slice_promise.py --source_dir $< --dest_dir $@_tmp --n_augment=0
+	$(PP) $(CC) $(CFLAGS) slice_promise.py --source_dir $< --dest_dir $@_tmp --n_augment=0
 	mv $@_tmp $@
 # data/promise: data/prostate.lineage data/TrainingData_Part1.zip data/TrainingData_Part2.zip data/TrainingData_Part3.zip
 # 	md5sum -c $<
