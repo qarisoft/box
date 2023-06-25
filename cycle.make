@@ -34,7 +34,7 @@ GRAPH = results/atlas/tra_loss.png results/atlas/val_loss.png \
 		results/atlas/val_3d_dsc.png
 # 		results/atlas/val_hausdorff.png \
 # HIST =  results/atlas/val_dice_hist.png
-HIST =
+HIST = 
 BOXPLOT = results/atlas/val_dice_boxplot.png \
 		results/atlas/val_3d_dsc_boxplot.png
 # 		results/atlas/val_hausdorff_boxplot.png \
@@ -78,7 +78,7 @@ data/ATLAS/train/gt data/ATLAS/val/gt: | data/ATLAS
 data/ATLAS/train data/ATLAS/val: | data/ATLAS
 data/ATLAS:  data/cyclemix
 	$(CC)   slice_cycl.py --source_dir $^ --dest_dir $@ --id_list data/uniq_ids \
-		--n_augment 0  --shape 240 230
+		--n_augment 0  --shape 256 256
 
 
 # Weak labels generation
