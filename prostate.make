@@ -78,13 +78,13 @@ data/PROSTATE: data/promise
 	rm -rf $@_tmp
 	$(PP) $(CC) $(CFLAGS) preprocess/slice_promise.py --source_dir $< --dest_dir $@_tmp --n_augment=0
 	mv $@_tmp $@
-data/promise: data/prostate.lineage data/TrainingData_Part1.zip data/TrainingData_Part2.zip data/TrainingData_Part3.zip
-	md5sum -c $<
-	rm -rf $@_tmp
-	unzip -q $(word 2, $^) -d $@_tmp
-	unzip -q $(word 3, $^) -d $@_tmp
-	unzip -q $(word 4, $^) -d $@_tmp
-	mv $@_tmp $@
+# data/promise: data/prostate.lineage data/TrainingData_Part1.zip data/TrainingData_Part2.zip data/TrainingData_Part3.zip
+# 	md5sum -c $<
+# 	rm -rf $@_tmp
+# 	unzip -q $(word 2, $^) -d $@_tmp
+# 	unzip -q $(word 3, $^) -d $@_tmp
+# 	unzip -q $(word 4, $^) -d $@_tmp
+# 	mv $@_tmp $@
 
 
 # Weak labels generation
