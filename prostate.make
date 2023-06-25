@@ -5,7 +5,7 @@ PP = PYTHONPATH="$(PYTHONPATH):."
 
 # CFLAGS = -O
 # DEBUG = --debug
-EPC = 100
+EPC = 10
 # EPC = 5
 K = 2
 
