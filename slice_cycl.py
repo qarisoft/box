@@ -30,12 +30,12 @@ def norm_arr(img: np.ndarray) -> np.ndarray:
     return res.astype(np.uint8)
 
 
-def fuse_labels(t1: np.ndarray, id_: str, acq: Path, nib_obj,cycl:bool=False) -> tuple[ndarray, ndarray]:
+def fuse_labels(t1: np.ndarray, id_: str, acq: Path, nib_obj,cycl:bool=False,lab_sufix: str = "") -> tuple[ndarray, ndarray]:
     gt: np.ndarray = np.zeros_like(t1, dtype=np.uint8)
     gt1: np.ndarray = np.zeros_like(t1, dtype=np.uint8)
     assert gt.dtype == np.uint8
     acq_=acq.parent
-    labels: List[Path] = list(acq_.glob(f"{id_}_manual.nii.gz"))
+    labels: List[Path] = list(acq_.glob(f"{id_}{lab_sufix}.nii.gz"))
     assert len(labels) >= 1, (acq, id_)
     # except:
         # pass
@@ -98,69 +98,61 @@ def sanity_label(label, t1, resolution, t1_resolution, label_path) -> bool:
 
 
 def slice_patient(id_: str, dest_path: Path, source_path: Path, shape: Tuple[int, int],
-                  n_augment: int,cycl:bool=False):
+                n_augment: int,cycl:bool=True, img_sufix:str='' ,lab_sufix:str='_manual'
+                ):
+    
     id_path: Path = Path(source_path, id_)
-    # print(cycl)
-    # print("id_path",id_path, "","id_",id_)
-    for acq in id_path.glob("s*"):
-        acq_id: str = acq.name
-        if cycl:
-            if acq.name==f"{id_}.nii.gz" :
-                print("acq",acq)
-                t1_path: Path = acq 
-            else: 
-                continue
-        else:
-            t1_path: Path = Path(acq, f"ses-1/anat/{acq.name}_ses-1_T1w.nii.gz")
-        nib_obj = nib.load(str(t1_path))
-        t1: np.ndarray = np.asarray(nib_obj.dataobj,dtype=np.float32)
-        if t1.max()>100:
-            cc0 = t1.max()/100
-            t1 = t1//cc0
-        # print("t1 shape ",t1.shape)
-        x, y, z = t1.shape
+    acq: Path = Path(id_path,f"{id_}.nii.gz") 
+    t1_path: Path = acq #Path(acq, f"")
+    nib_obj = nib.load(str(t1_path))
+    t1: np.ndarray = np.asarray(nib_obj.dataobj,dtype=np.float32)
+    if t1.max()>100:
+        cc0 = t1.max()/100
+        t1 = t1//cc0
+    # print("t1 shape ",t1.shape)
+    x, y, z = t1.shape
 
-        # print("args", *t1.shape, "zoom",*nib_obj.header.get_zooms())
+    # print("args", *t1.shape, "zoom",*nib_obj.header.get_zooms())
+    # assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
+    # try:
         # assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
-        # try:
-            # assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
-        # except:
-            # print("SSSSSSSSSSSSSSSS")
-            # continue
-        # gt: np.ndarray = fuse_labels(t1, id_, acq, nib_obj)
-        gt, gt1 = fuse_labels(t1, id_, acq, nib_obj,cycl=cycl)
+    # except:
+        # print("SSSSSSSSSSSSSSSS")
+        # continue
+    # gt: np.ndarray = fuse_labels(t1, id_, acq, nib_obj)
+    gt, gt1 = fuse_labels(t1, id_, acq, nib_obj,cycl=cycl,lab_sufix=lab_sufix)
 
-        norm_img: np.ndarray = norm_arr(t1)
+    norm_img: np.ndarray = norm_arr(t1)
 
-        for idz in range(z):
-            try:
-                padded_img: np.ndarray = center_pad(norm_img[:, :, idz], shape)
-                padded_gt: np.ndarray = center_pad(gt[:, :, idz], shape)
-                padded_gt1: np.ndarray = center_pad(gt1[:, :, idz], shape)
-                assert padded_img.shape == padded_gt.shape == shape
-            except:
-                continue
-            for k in range(n_augment + 1):
-                arrays: List[np.ndarray] = [padded_img, padded_gt, padded_gt1]
+    for idz in range(z):
+        try:
+            padded_img: np.ndarray = center_pad(norm_img[:, :, idz], shape)
+            padded_gt: np.ndarray = center_pad(gt[:, :, idz], shape)
+            padded_gt1: np.ndarray = center_pad(gt1[:, :, idz], shape)
+            assert padded_img.shape == padded_gt.shape == shape
+        except:
+            continue
+        for k in range(n_augment + 1):
+            arrays: List[np.ndarray] = [padded_img, padded_gt, padded_gt1]
 
-                augmented_arrays: List[np.ndarray]
-                if k == 0:
-                    augmented_arrays = arrays[:]
-                else:
-                    augmented_arrays = map_(np.asarray, augment(*arrays))
+            augmented_arrays: List[np.ndarray]
+            if k == 0:
+                augmented_arrays = arrays[:]
+            else:
+                augmented_arrays = map_(np.asarray, augment(*arrays))
 
-                subfolders: List[str] = ["img", "gt", "gt1"]
-                assert len(augmented_arrays) == len(subfolders)
-                for save_subfolder, data in zip(subfolders,
-                                                augmented_arrays):
-                    filename = f"{id_}_{acq_id}_{idz}_{k}.png"
+            subfolders: List[str] = ["img", "gt", "gt1"]
+            assert len(augmented_arrays) == len(subfolders)
+            for save_subfolder, data in zip(subfolders,
+                                            augmented_arrays):
+                filename = f"{id_}_{idz}_{k}.png"
 
-                    save_path: Path = Path(dest_path, save_subfolder)
-                    save_path.mkdir(parents=True, exist_ok=True)
+                save_path: Path = Path(dest_path, save_subfolder)
+                save_path.mkdir(parents=True, exist_ok=True)
 
-                    with warnings.catch_warnings():
-                        warnings.filterwarnings("ignore", category=UserWarning)
-                        imsave(str(Path(save_path, filename)), data)
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=UserWarning)
+                    imsave(str(Path(save_path, filename)), data)
 
 
 def get_splits(id_list: str, retains: int, fold: int) -> Tuple[List[str], List[str]]:
@@ -216,11 +208,14 @@ def main(args: argparse.Namespace):
             # executor
         for i in split_ids :
             slice_patient(i,
-                                 dest_path=dest_mode,
-                                 source_path=src_path,
-                                 shape=tuple(args.shape),
-                                 n_augment=args.n_augment if mode == "train" else 0,
-                                 cycl=args.cycl)
+                                dest_path=dest_mode,
+                                source_path=src_path,
+                                shape=tuple(args.shape),
+                                n_augment=args.n_augment if mode == "train" else 0,
+                                cycl=args.cycl,
+                                img_sufix=args.img_sufix,
+                                lab_sufix=args.lab_sufix
+                                )
         #     break
 
 def get_args() -> argparse.Namespace:
@@ -236,6 +231,8 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--fold', type=int, default=0)
     parser.add_argument("--cycl",type=bool,default=True)
+    parser.add_argument("--img_sufix",type=str,default='')
+    parser.add_argument("--lab_sufix",type=str,default='_manual')
     
     parser.add_argument('--n_augment', type=int, default=0,
                         help="Number of augmentation to create per image, only for the training set")
