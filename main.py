@@ -29,11 +29,14 @@ def setup(args, n_class: int) -> Tuple[Any, Any, Any, List[List[Callable]], List
     device = torch.device("cpu") if cpu else torch.device("cuda")
 
     if args.weights:
-        if cpu:
-            net = torch.load(args.weights, map_location='cpu')
-        else:
-            net = torch.load(args.weights)
-        print(f">> Restored weights from {args.weights} successfully.")
+        try:
+            if cpu:
+                net = torch.load(args.weights, map_location='cpu')
+            else:
+                net = torch.load(args.weights)
+            print(f">> Restored weights from {args.weights} successfully.")
+        except:
+            pass
     else:
         net_class = getattr(__import__('networks'), args.network)
         net = net_class(args.modalities, n_class).to(device)

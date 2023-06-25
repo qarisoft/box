@@ -219,7 +219,7 @@ results/atlas/%:
 # rm -rf $@_tmp
 	$(CC)  main.py --dataset=$(dir $(<D)) --batch_size=$(BS) --schedule \
 		--n_epoch=$(EPC) --workdir=$@ --csv=metrics.csv --n_class=$(K) --metric_axis 1 \
-		--grp_regex="$(G_RGX)" --network=$(NET) $(OPT) $(DATA) $(DEBUG)
+		--grp_regex="$(G_RGX)" --network=$(NET) $(OPT) $(DATA) $(DEBUG) --weights=$@/best.pkl
 # mv $@_tmp $@
 
 
