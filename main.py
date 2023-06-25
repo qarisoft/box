@@ -36,7 +36,9 @@ def setup(args, n_class: int) -> Tuple[Any, Any, Any, List[List[Callable]], List
                 net = torch.load(args.weights)
             print(f">> Restored weights from {args.weights} successfully.")
         except:
-            pass
+            net_class = getattr(__import__('networks'), args.network)
+            net = net_class(args.modalities, n_class).to(device)
+            net.init_weights()
     else:
         net_class = getattr(__import__('networks'), args.network)
         net = net_class(args.modalities, n_class).to(device)

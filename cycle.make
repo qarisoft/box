@@ -10,8 +10,8 @@ EPC = 10
 BS = 5
 
 K = 2
-
-G_RGX = (\d+_\d+)_\d+_\d+
+G_RGX = (\d+_[0-9A-Z0-9a-zA-Z]+)_\d+_\d+
+# G_RGX = (\d+_\d+)_\d+_\d+
 B_DATA = [('img', png_transform, False), ('gt', gt_transform, True)]
 NET = ENet
 # NET = Dummy
