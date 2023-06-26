@@ -113,7 +113,12 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+results1/
+data
+viewer.py
+run.py
+results
+data0
 # Spyder project settings
 .spyderproject
 .spyproject

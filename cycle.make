@@ -1,5 +1,5 @@
-CC = python
-PP = PYTHONPATH="$(PYTHONPATH):."
+CC = venv/Scripts/python
+PP = 
 
 .PHONY: all plot train pack view metrics report
 
@@ -11,7 +11,7 @@ BS = 8
 
 K = 2
 #G_RGX = (\d+_[0-9A-Z0-9a-zA-Z]+)_\d+_\d+
-G_RGX = [a-z]+\d+_DE
+G_RGX = ([a-z]+\d+)_DE_\d+_\d+
 # G_RGX = (\d+_\d+)_\d+_\d+
 B_DATA = [('img', png_transform, False), ('gt', gt_transform, True)]
 NET = ENet

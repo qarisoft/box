@@ -302,6 +302,7 @@ def do_epoch(mode: str, net: Any, device: Any, loaders: List[DataLoader], epc: i
 
 
 def run(args: argparse.Namespace) -> Dict[str, Tensor]:
+    # with open()
     global best_3d_dsc, best_hausdorff
     n_class: int = args.n_class
     lr: float = args.l_rate
