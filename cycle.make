@@ -5,12 +5,13 @@ PP = PYTHONPATH="$(PYTHONPATH):."
 
 # CFLAGS = -O
 # DEBUG = --debug
-EPC = 10
+EPC = 5
 # EPC = 5
-BS = 5
+BS = 8
 
 K = 2
-G_RGX = (\d+_[0-9A-Z0-9a-zA-Z]+)_\d+_\d+
+#G_RGX = (\d+_[0-9A-Z0-9a-zA-Z]+)_\d+_\d+
+G_RGX = [a-z]+\d+_DE
 # G_RGX = (\d+_\d+)_\d+_\d+
 B_DATA = [('img', png_transform, False), ('gt', gt_transform, True)]
 NET = ENet
@@ -78,7 +79,7 @@ data/ATLAS/train/gt data/ATLAS/val/gt: | data/ATLAS
 data/ATLAS/train data/ATLAS/val: | data/ATLAS
 data/ATLAS:  data/cyclemix
 	$(CC)   slice_cycl.py --source_dir $^ --dest_dir $@ --id_list data/uniq_ids \
-		--n_augment 0  --shape 256 256
+		--n_augment 0  --shape 480 480
 
 
 # Weak labels generation
