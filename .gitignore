@@ -131,3 +131,4 @@ data0
 
 # mypy
 .mypy_cache/
+viewer
