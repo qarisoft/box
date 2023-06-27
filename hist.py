@@ -11,19 +11,21 @@ import matplotlib.pyplot as plt
 
 from utils import map_, colors
 
-
+def path_(p):
+    for i in p:
+        yield i
 def run(args: argparse.Namespace) -> None:
     # assert len(args.folders) <= len(colors)
-
+    args.columns = range(1)
     if len(args.columns) > 1:
         raise NotImplementedError("Only 1 columns at a time is handled for now")
 
     paths: List[Path] = [Path(f, args.filename) for f in args.folders]
-    arrays: List[np.ndarray] = map_(np.load, paths)
+    arrays: List[np.ndarray] = map_(np.load, path_(paths))
     metric_name: str = paths[0].stem
 
     if len(arrays[0].shape) == 2:
-        arrays = map_(lambda a: a[..., np.newaxis], arrays)
+        arrays = map_(lambda aa: aa[..., np.newaxis], arrays)
     epoch, _, class_ = arrays[0].shape
     for a in arrays[1:]:
         ea, _, ca = a.shape
@@ -42,7 +44,7 @@ def run(args: argparse.Namespace) -> None:
     for a, c, p in zip(arrays, colors, paths):
         for k in args.columns:
             mean_a = a[..., k].mean(axis=1)
-            best_epoch: int = np.argmax(mean_a)
+            best_epoch: int = int(np.argmax(mean_a))
 
             # values = a[args.epc, :, k]
             values = a[best_epoch, :, k]
@@ -62,13 +64,13 @@ def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Plot data over time')
     parser.add_argument('--folders', type=str, required=True, nargs='+', help="The folders containing the file")
     parser.add_argument('--filename', type=str, required=True)
-    parser.add_argument('--columns', type=int, nargs='+', default=0, help="Which columns of the third axis to plot")
+    parser.add_argument('--columns', type=int, nargs='+', default=1, help="Which columns of the third axis to plot")
     parser.add_argument("--savefig", type=str, default=None)
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--smooth", action="store_true",
                         help="Help for compatibility with other plotting functions, does not do anything.")
     parser.add_argument("--nbins", type=int, default=100)
-    parser.add_argument("--epc", type=int, required=True)
+    parser.add_argument("--epc", type=int, default=1)
 
     # Dummies
     parser.add_argument("--debug", action="store_true", help="Dummy for compatibility")

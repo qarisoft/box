@@ -193,11 +193,11 @@ def weaken_img(pn: Tuple, strategy: Callable) -> Tuple[int, int]:
         assert inter_neg.sum() == 0 or args.allow_overflow, inter_neg.sum()  # No overflow over the border
         assert inter.sum() > 0 or size == 0, (inter.sum(), size == 0)  # At least some overlap
     except AssertionError:
-        # print(res_arr.shape, ni.shape)
-        # print(np.unique(rb), np.unique(res_arr))
-        # print(rb.sum(), ni.sum())
-        # print(inter_neg.sum())
-        # print(inter.sum())
+        print(res_arr.shape, ni.shape)
+        print(np.unique(rb), np.unique(res_arr))
+        print(rb.sum(), ni.sum())
+        print(inter_neg.sum())
+        print(inter.sum())
         _, axes = plt.subplots(nrows=1, ncols=2)
 
         for axe, fig in zip(axes, [np.array(img), res_arr]):

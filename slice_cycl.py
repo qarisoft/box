@@ -30,20 +30,21 @@ def norm_arr(img: np.ndarray) -> np.ndarray:
     return res.astype(np.uint8)
 
 
-def fuse_labels(t1: np.ndarray, id_: str, acq: Path, nib_obj,cycl:bool=False,lab_sufix: str = "") -> tuple[ndarray, ndarray]:
+def fuse_labels(t1: np.ndarray, id_: str, acq: Path, nib_obj, cycl: bool = False, lab_sufix: str = "") -> tuple[
+    ndarray, ndarray]:
     gt: np.ndarray = np.zeros_like(t1, dtype=np.uint8)
     gt1: np.ndarray = np.zeros_like(t1, dtype=np.uint8)
     assert gt.dtype == np.uint8
-    acq_=acq.parent
+    acq_ = acq.parent
     labels: List[Path] = list(acq_.glob(f"{id_}{lab_sufix}.nii.gz"))
     assert len(labels) >= 1, (acq, id_)
     # except:
-        # pass
+    # pass
     label_path: Path
     label: np.ndarray
     for label_path in labels:
         label_obj = nib.load(str(label_path))
-        label = np.asarray(label_obj.dataobj,dtype=np.float64)
+        label = np.asarray(label_obj.dataobj, dtype=np.float64)
 
         assert sanity_label(label, t1, label_obj.header.get_zooms(), nib_obj.header.get_zooms(), label_path)
 
@@ -73,7 +74,7 @@ def sanity_t1(t1, x, y, z, dx, dy, dz) -> bool:
     assert x != y, (x, y)
     assert x != z or y != z, (x, y, z)
     assert x in [230], x
-    assert y in [225,240], y
+    assert y in [225, 240], y
     assert z in [230], z
 
     return True
@@ -88,7 +89,8 @@ def sanity_label(label, t1, resolution, t1_resolution, label_path) -> bool:
     labels_allowed = [[0.0, 0.9999999997671694],
                       [0., 254.9999999406282],
                       [0., 0.9999999997671694, 253.99999994086102, 254.9999999406282],
-                      [0.0, 0.9999999997671694, 1.9999999995343387, 252.99999994109385, 253.99999994086102, 254.9999999406282]]
+                      [0.0, 0.9999999997671694, 1.9999999995343387, 252.99999994109385, 253.99999994086102,
+                       254.9999999406282]]
 
     # assert set(uniq(label)) in set(labels_allowed), (set(uniq(label)), label_path)
     matches: List[bool] = [set(uniq(label)) == set(allowed) for allowed in labels_allowed]
@@ -98,40 +100,39 @@ def sanity_label(label, t1, resolution, t1_resolution, label_path) -> bool:
 
 
 def slice_patient(id_: str, dest_path: Path, source_path: Path, shape: Tuple[int, int],
-                n_augment: int,cycl:bool=True, img_sufix:str='' ,lab_sufix:str='_manual'
-                ):
-    
+                  n_augment: int, cycl: bool = True, img_sufix: str = '', lab_sufix: str = '_manual'
+                  ):
     id_path: Path = Path(source_path, id_)
-    acq: Path = Path(id_path,f"{id_}.nii.gz") 
-    t1_path: Path = acq #Path(acq, f"")
+    acq: Path = Path(id_path, f"{id_}.nii.gz")
+    t1_path: Path = acq  # Path(acq, f"")
     nib_obj = nib.load(str(t1_path))
-    t1: np.ndarray = np.asarray(nib_obj.dataobj,dtype=np.float32)
-    if t1.max()>100:
-        cc0 = t1.max()/100
-        t1 = t1//cc0
+    t1: np.ndarray = np.asarray(nib_obj.dataobj, dtype=np.float32)
+    if t1.max() > 100:
+        cc0 = t1.max() / 100
+        t1 = t1 // cc0
     # print("t1 shape ",t1.shape)
     x, y, z = t1.shape
 
     # print("args", *t1.shape, "zoom",*nib_obj.header.get_zooms())
     # assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
     # try:
-        # assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
+    # assert sanity_t1(t1, *t1.shape, *nib_obj.header.get_zooms())
     # except:
-        # print("SSSSSSSSSSSSSSSS")
-        # continue
+    # print("SSSSSSSSSSSSSSSS")
+    # continue
     # gt: np.ndarray = fuse_labels(t1, id_, acq, nib_obj)
-    gt, gt1 = fuse_labels(t1, id_, acq, nib_obj,cycl=cycl,lab_sufix=lab_sufix)
+    gt, gt1 = fuse_labels(t1, id_, acq, nib_obj, cycl=cycl, lab_sufix=lab_sufix)
 
     norm_img: np.ndarray = norm_arr(t1)
 
     for idz in range(z):
-        try:
-            padded_img: np.ndarray = center_pad(norm_img[:, :, idz], shape)
-            padded_gt: np.ndarray = center_pad(gt[:, :, idz], shape)
-            padded_gt1: np.ndarray = center_pad(gt1[:, :, idz], shape)
-            assert padded_img.shape == padded_gt.shape == shape
-        except:
-            continue
+        # try:
+        padded_img: np.ndarray = center_pad(norm_img[:, :, idz], shape)
+        padded_gt: np.ndarray = center_pad(gt[:, :, idz], shape)
+        padded_gt1: np.ndarray = center_pad(gt1[:, :, idz], shape)
+        assert padded_img.shape == padded_gt.shape == shape
+        # except:
+        # continue
         for k in range(n_augment + 1):
             arrays: List[np.ndarray] = [padded_img, padded_gt, padded_gt1]
 
@@ -182,7 +183,7 @@ def main(args: argparse.Namespace):
 
     # Assume the cleaning up is done before calling the script
     assert src_path.exists()
-    if dest_path.exists() :
+    if dest_path.exists():
         shutil.rmtree(dest_path)
 
     training_ids: List[str]
@@ -204,19 +205,20 @@ def main(args: argparse.Namespace):
         # with ProcessPoolExecutor() as executor:
         #     executor.map(pfun, split_ids)
         #     print(executor._mp_context)
-            
-            # executor
-        for i in split_ids :
+
+        # executor
+        for i in split_ids:
             slice_patient(i,
-                                dest_path=dest_mode,
-                                source_path=src_path,
-                                shape=tuple(args.shape),
-                                n_augment=args.n_augment if mode == "train" else 0,
-                                cycl=args.cycl,
-                                img_sufix=args.img_sufix,
-                                lab_sufix=args.lab_sufix
-                                )
+                          dest_path=dest_mode,
+                          source_path=src_path,
+                          shape=tuple(args.shape),
+                          n_augment=args.n_augment if mode == "train" else 0,
+                          cycl=args.cycl,
+                          img_sufix=args.img_sufix,
+                          lab_sufix=args.lab_sufix
+                          )
         #     break
+
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Slicing parameters')
@@ -230,10 +232,10 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('--retains', type=int, default=2, help="Number of retained patient for the validation data")
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--fold', type=int, default=0)
-    parser.add_argument("--cycl",type=bool,default=True)
-    parser.add_argument("--img_sufix",type=str,default='')
-    parser.add_argument("--lab_sufix",type=str,default='_manual')
-    
+    parser.add_argument("--cycl", type=bool, default=True)
+    parser.add_argument("--img_sufix", type=str, default='')
+    parser.add_argument("--lab_sufix", type=str, default='_manual')
+
     parser.add_argument('--n_augment', type=int, default=0,
                         help="Number of augmentation to create per image, only for the training set")
     args = parser.parse_args()

@@ -115,6 +115,8 @@ env.bak/
 venv.bak/
 results1/
 data
+viewer
+viewer/
 viewer.py
 run.py
 results

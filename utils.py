@@ -23,7 +23,6 @@ from PIL import Image, ImageOps
 from medpy.metric.binary import hd
 from scipy.ndimage import distance_transform_edt as distance
 
-
 colors = ["c", "r", "g", "b", "m", 'y', 'k', 'chartreuse', 'coral', 'gold', 'lavender',
           'silver', 'tan', 'teal', 'wheat', 'orchid', 'orange', 'tomato']
 
@@ -50,18 +49,18 @@ def map_(fn: Callable[[A], B], iter: Iterable[A]) -> List[B]:
     return list(map(fn, iter))
 
 
-def mmap_(fn: Callable[[A], B], iter: Iterable[A],r=None) -> List[B]:
+def mmap_(fn: Callable[[A], B], iter: Iterable[A], r=None) -> List[B]:
     with ProcessPoolExecutor() as executor:
         if r:
             return map(fn, iter)
         else:
             futures = [executor.submit(fn, it_) for it_ in iter]
             # for future in as_completed(futures):
-                # if future.done():
-                    # print("result:-> done")
+            # if future.done():
+            # print("result:-> done")
             # for it_ in iter:
-                # executor.submit(fn, it_)
-            
+            # executor.submit(fn, it_)
+
 
 def uc_(fn: Callable) -> Callable:
     return partial(uncurry, fn)
@@ -275,7 +274,7 @@ def one_hot2dist(seg: np.ndarray, resolution: Tuple[float, float, float] = None)
         if posmask.any():
             negmask = ~posmask
             res[k] = distance(negmask, sampling=resolution) * negmask \
-                - (distance(posmask, sampling=resolution) - 1) * posmask
+                     - (distance(posmask, sampling=resolution) - 1) * posmask
         # The idea is to leave blank the negative classes
         # since this is one-hot encoded, another class will supervise that pixel
 
@@ -482,6 +481,7 @@ def augment_arr(*arrs_a: np.ndarray, rotate_angle: float = 45,
 
 def get_center(shape: Tuple, *arrs: np.ndarray) -> List[np.ndarray]:
     """ center cropping """
+
     def g_center(arr):
         if arr.shape == shape:
             return arr
@@ -501,23 +501,31 @@ def get_center(shape: Tuple, *arrs: np.ndarray) -> List[np.ndarray]:
 
 def center_pad(arr: np.ndarray, target_shape: Tuple[int, ...]) -> np.ndarray:
     assert len(arr.shape) == len(target_shape)
+    # img_slice = img[:, :, slice_index]
+    nx = 212
+    ny = 212
+    img_slice = arr
+    x, y = img_slice.shape
+    x_s = (x - nx) // 2
+    y_s = (y - ny) // 2
+    x_c = (nx - x) // 2
+    y_c = (ny - y) // 2
+    # Crop section of image for prediction
+    if x > nx and y > ny:
+        slice_cropped = img_slice[x_s:x_s + nx, y_s:y_s + ny]
+    else:
+        slice_cropped = np.zeros((nx, ny))
+        if x <= nx and y > ny:
+            slice_cropped[x_c:x_c + x, :] = img_slice[:, y_s:y_s + ny]
+        elif x > nx and y <= ny:
+            slice_cropped[:, y_c:y_c + y] = img_slice[x_s:x_s + nx, :]
+        else:
+            slice_cropped[x_c:x_c + x, y_c:y_c + y] = img_slice[:, :]
 
-    diff: List[int] = [(nx - x) for (x, nx) in zip(arr.shape, target_shape)]
-    pad_width: List[Tuple(int, int)] = [[w // 2, w - (w // 2)] for w in diff]
-    # pad_width = []
-    # for i2 in pad_widt:
-    #     p1 = []
-    #     print("p1 ",p1)
-    #     print("i2 ",i2)
-    #     for i,x in enumerate(i2):
-    #         p2 = x
-    #         if x<0:
-    #             p2 = -x
-    #         p1.append(p2)
-    #     pad_widt0 = (p1[0],p1[1])
-    #     pad_width.append(pad_widt0)
-    res = np.pad(arr, pad_width)
-    # print("pad_width ",res.shape)
-    assert res.shape == target_shape, (res.shape, target_shape)
+    img_slice = slice_cropped
+    print(img_slice.shape)
+    # img_slice = np.divide((slice_cropped - np.mean(slice_cropped)), np.std(slice_cropped))
+    # img_slice = np.reshape(img_slice, ( nx, ny))
+    assert img_slice.shape == target_shape, (img_slice.shape, target_shape)
+    return img_slice
 
-    return res
