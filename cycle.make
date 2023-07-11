@@ -76,7 +76,7 @@ $(LIGHTPACK): $(PLT) $(TRN)
 
 data/ATLAS/train/gt data/ATLAS/val/gt: | data/ATLAS
 data/ATLAS/train data/ATLAS/val: | data/ATLAS
-data/ATLAS: data/atlas
+data/ATLAS: data
 #	rm -rf $@_tmp $@
 #	$(PP) $(CC) $(CFLAGS) preprocess/slice_atlas.py --source_dir $^ --dest_dir $@_tmp --id_list $^/uniq_ids \
 #		--n_augment 0 --shape 208 256
