@@ -40,7 +40,7 @@ BOXPLOT = results/atlas/val_dice_boxplot.png \
 
 PLT = $(GRAPH) $(HIST) $(BOXPLOT)
 
-REPO = $(shell basename `git rev-parse --show-toplevel`)
+REPO = $(shell basename )
 DATE = $(shell date +"%y%m%d")
 HASH = s
 HOSTNAME = ss
